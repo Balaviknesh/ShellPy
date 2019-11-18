@@ -26,7 +26,7 @@ def get_all_file_paths(directory):
 class ShellPy(Cmd):
 
     promt = " (: "+ getpass.getuser() + " :) > "
-    intro = "ShellPy© Version 0.1"
+    intro = "ShellPy© Version 0.2"
 
 
     def do_cwd(self, inp):
