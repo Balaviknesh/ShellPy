@@ -58,7 +58,7 @@ class ShellPy(Cmd):
         print("Current time " + time.strftime("%X"))
         print("Current time %s" % now)
 
-    def do_getIPAddress(self, inp):
+    def do_getIP(self, inp):
 
         hostname = socket.gethostname()
         IPAddr = socket.gethostbyname(hostname)
@@ -68,8 +68,6 @@ class ShellPy(Cmd):
     def do_downloadFiles(self, inp):
 
         print('Beginning file download with wget module')
-        #url ='https: // www.google.com / url?sa = i & rct = j & q = & esrc = s & source = images & cd = & ved = 2ahUKEwiJ3PTesuHlAhVQrJ4KHQv1DiYQjRx6BAgBEAQ & url = https % 3A % 2F % 2Fwww.pexels.com % 2Fsearch % 2Fflower % 2F & psig = AOvVaw3CxXQXqwUVaF_19dM7sms5 & ust = 1573535516801012'
-
         url = 'http://i3.ytimg.com/vi/J---aiyznGQ/mqdefault.jpg'
         wget.download(url, '/Users/rishivenkat/Downloads/img.jpg')
 
