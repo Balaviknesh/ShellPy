@@ -1,6 +1,7 @@
 from cmd import Cmd
 import getpass
-import os
+import psutil
+from art import text2art
 import subprocess
 import time
 import socket
@@ -23,9 +24,18 @@ def get_all_file_paths(directory):
 
             # returning all file paths
     return file_paths
+
+
+
 class ShellPy(Cmd):
 
-    promt = " (: "+ getpass.getuser() + " :) > "
+
+    Art = text2art("ShellPy", "nvscript")
+    clear = lambda: os.system('clear')
+    clear()
+    print(Art)
+
+    prompt = " (: " + getpass.getuser() + " :) > "
     intro = "ShellPy© Version 0.4"
 
 
@@ -112,6 +122,15 @@ class ShellPy(Cmd):
 
         fantasy_zip.close()
 
+    def do_memusage(self, inp):
+        print("Total: ", psutil.virtual_memory().total / 1073741824)
+        print("Used: ", psutil.virtual_memory().used / 1073741824)
+        print("Available: ", psutil.virtual_memory().available / 1073741824)
+
+    def do_clear(self, inp):
+        clear = lambda: os.system('clear')
+        clear()
+
     def help_cwd(self):
         print("Get Current Working Directory")
 
@@ -123,7 +142,6 @@ class ShellPy(Cmd):
 
     def help_abc(self):
         print("hello")
-
 
     def help_getIPAddress(self, inp):
         print("Get the IP Address")
