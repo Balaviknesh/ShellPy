@@ -8,50 +8,47 @@ import socket
 import wget
 from zipfile import ZipFile
 import os
-import zipfile
-
-
-def get_all_file_paths(directory):
-    # initializing empty file paths list
-    file_paths = []
-
-    # crawling through directory and subdirectories
-    for root, directories, files in os.walk(directory):
-        for filename in files:
-            # join the two strings in order to form the full filepath.
-            filepath = os.path.join(root, filename)
-            file_paths.append(filepath)
-
-            # returning all file paths
-    return file_paths
-
-
+import sys
+import ssl
+import os.path
+import inquirer
+import shutil
+import readline
 
 class ShellPy(Cmd):
-
 
     Art = text2art("ShellPy", "nvscript")
     clear = lambda: os.system('clear')
     clear()
     print(Art)
-
-    prompt = " (: " + getpass.getuser() + " :) > "
+    print("Working in " + os.path.basename(os.getcwd()))
+    prompt = os.path.basename(os.getcwd()) +" (: " + getpass.getuser() + " :) > "
     intro = "ShellPy© Version 0.4"
 
+    def preloop(self):
+        if readline and os.path.exists(histfile):
+            readline.read_history_file(histfile)
+
+    def postloop(self):
+        if readline:
+            readline.set_history_length(histfile_size)
+            readline.write_history_file(histfile)
+            
+    def do_clear(self, inp):
+        clear = lambda: os.system('clear')
+        clear()
 
     def do_cwd(self, inp):
+
         print(os.getcwd())
 
-    def do_open(self, inp):
-        #subprocess.Popen("/Applications/Visual Studio.app")
-        #subprocess.Popen([os.getcwd() + "/Users/rishivenkat/Desktop/dheepan",
-            #              "--url=http://127.0.0.1:8100"])
-
-
-        file_to_show = "/Applications/keynote.app"
-        subprocess.call(["open", "-R", file_to_show])
+    def do_ch(self, inp):
+        os.chdir(inp)
+        self.prompt = os.path.basename(os.getcwd()) + " (: " + getpass.getuser() + " :) > "
+        print("Working in " + os.path.basename(os.getcwd()))
 
     def do_gettime(self, inp):
+
         now = time.strftime("%c")
         print("Current date & time " + time.strftime("%c"))
         print("Current date " + time.strftime("%x"))
@@ -62,35 +59,83 @@ class ShellPy(Cmd):
 
         hostname = socket.gethostname()
         IPAddr = socket.gethostbyname(hostname)
-        print("Your Computer Name is:" + hostname)
-        print("Your Computer IP Address is:" + IPAddr)
+        print("Your Computer Name is: " + hostname)
+        print("Your Computer IP Address is: " + IPAddr)
 
-    def do_downloadFiles(self, inp):
+    def do_dl(self, inp):
 
-        print('Beginning file download with wget module')
-        url = 'http://i3.ytimg.com/vi/J---aiyznGQ/mqdefault.jpg'
-        wget.download(url, '/Users/rishivenkat/Downloads/img.jpg')
+        try:
+            _create_unverified_https_context = ssl._create_unverified_context
+        except AttributeError:
+            pass
+        else:
+            ssl._create_default_https_context = _create_unverified_https_context
 
-    def do_abc(self, inp):
-        directory = './Users/rishivenkat/Downloads/Assignment5'
+        name = wget.detect_filename(inp)
+        wget.download(inp, '/Users/'+getpass.getuser()+'/Downloads/'+name)
 
-        # calling function to get all file paths in the directory
-        file_paths = get_all_file_paths(directory)
+    def do_memusage(self, inp):
+        print("Total: ", psutil.virtual_memory().total / 1073741824)
+        print("Used: ", psutil.virtual_memory().used / 1073741824)
+        print("Available: ", psutil.virtual_memory().available / 1073741824)
 
-        # printing the list of all files to be zipped
-        print('Following files will be zipped:')
-        for file_name in file_paths:
-            print(file_name)
+    def do_ls(self, inp):
+        file_list = os.listdir(os.getcwd())
+        for i in range (len(file_list)):
+            print(file_list[i])
 
-            # writing files to a zipfile
-        with ZipFile('Assignmentfive.zip', 'w') as zip:
-            # writing each file one by one
-            for file in file_paths:
-                zip.write(file)
+    def do_zipf(self, inp):
+        file_list = []
+        for file in os.listdir(os.getcwd()):
+            if os.path.isfile(os.path.join(os.getcwd(), file)) and not file.startswith('.'):
+                file_list.append(file)
+        questions = [inquirer.Checkbox('files',
+                                       message="Select Files to Zip (use Spacebar to select and Enter to confirm)",
+                                       choices=file_list)]
+        answers = inquirer.prompt(questions)
+        print(answers['files'])
+        try:
+            with ZipFile(os.path.basename(os.getcwd()) + '.zip', 'w') as zip:
+                for i in range(len(answers['files'])):
+                    print(answers['files'][i])
+                    zip.write(answers['files'][i])
+                print('All file(s) zipped successfully!')
+        except PermissionError:
+            print("Requires Root Access")
+            args = ['sudo', sys.executable] + sys.argv + [os.environ]
+            os.execlpe('sudo', *args)
 
-        print('All files zipped successfully!')
+    def do_zipd(self, inp):
+        file_list = []
+        for file in os.listdir(os.getcwd()):
+            if not os.path.isfile(os.path.join(os.getcwd(), file)) and not file.startswith('.'):
+                file_list.append(file)
+        questions = [
+            inquirer.Checkbox('files', message="Select Folders to Zip (use Spacebar to select and Enter to confirm)",
+                              choices=file_list)]
+        answers = inquirer.prompt(questions)
+        try:
+            zipf = ZipFile("MyShellPy.Zip", 'w')
+            for dir in answers['files']:
+                for root, dirs, files in os.walk(dir):
+                    for file in files:
+                        zipf.write(os.path.join(root, file),
+                                   os.path.relpath(os.path.join(root, file), os.path.join(dir, '..')))
+            zipf.close()
+            print('All file(s) zipped successfully!')
+        except PermissionError:
+            print("Requires Root Access")
+            args = ['sudo', sys.executable] + sys.argv + [os.environ]
+            os.execlpe('sudo', *args)
 
-    def do_decompressFiles(self, inp):
+    def do_open(self, inp):
+        #subprocess.Popen("/Applications/Visual Studio.app")
+        #subprocess.Popen([os.getcwd() + "/Users/rishivenkat/Desktop/dheepan",
+            #              "--url=http://127.0.0.1:8100"])
+        file_to_show = "/Applications/keynote.app"
+        subprocess.call(["open", "-R", file_to_show])
+
+    def do_unzip(self, inp):
 
         # specifying the zip file name
         file_name = "/Users/rishivenkat/Downloads/DBMS Assignment 1-b 2.zip"
@@ -104,30 +149,6 @@ class ShellPy(Cmd):
             print('Extracting all the files now...')
             zip.extractall()
             print('Done!')
-
-    def do_compressFiles(self, inp):
-
-
-        fantasy_zip = zipfile.ZipFile('/Users/rishivenkat/Downloads/Assignment5.zip', 'w')
-
-        for folder, subfolders, files in os.walk('/Users/rishivenkat/Downloads'):
-
-            for file in files:
-                if file.endswith('.pdf'):
-                    fantasy_zip.write(os.path.join(folder, file),
-                                      os.path.relpath(os.path.join(folder, file), '/Users/rishivenkat/Downloads'),
-                                      compress_type=zipfile.ZIP_DEFLATED)
-
-        fantasy_zip.close()
-
-    def do_memusage(self, inp):
-        print("Total: ", psutil.virtual_memory().total / 1073741824)
-        print("Used: ", psutil.virtual_memory().used / 1073741824)
-        print("Available: ", psutil.virtual_memory().available / 1073741824)
-
-    def do_clear(self, inp):
-        clear = lambda: os.system('clear')
-        clear()
 
     def help_cwd(self):
         print("Get Current Working Directory")
@@ -153,5 +174,9 @@ class ShellPy(Cmd):
     def help_compressFlies(self, inp):
         print("Compressing the Files")
 
+
 if __name__ == '__main__':
-    ShellPy().cmdloop()
+    histfile = os.path.expanduser('~/.shellpy_history1')
+    histfile_size = 1000
+    shellPy = ShellPy()
+    shellPy.cmdloop()
