@@ -23,7 +23,7 @@ class ShellPy(Cmd):
     print(Art)
     print("Working in " + os.path.basename(os.getcwd()))
     prompt = os.path.basename(os.getcwd()) +" (: " + getpass.getuser() + " :) > "
-    intro = "ShellPy© Version 0.4"
+    intro = "ShellPy© Version 0.5"
 
     def preloop(self):
         if readline and os.path.exists(histfile):
@@ -158,9 +158,6 @@ class ShellPy(Cmd):
 
     def help_gettime(self):
         print("Get the time and date of the system")
-
-    def help_abc(self):
-        print("hello")
 
     def help_getIPAddress(self, inp):
         print("Get the IP Address")
