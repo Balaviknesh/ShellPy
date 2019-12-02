@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-pyinstaller main.py
+pyinstaller main.py --onefile
