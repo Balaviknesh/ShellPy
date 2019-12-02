@@ -6,14 +6,15 @@ import subprocess
 import time
 import socket
 import wget
-from zipfile import ZipFile
+from zipfile36 import ZipFile
 import os
 import sys
 import ssl
 import os.path
 import inquirer
-import shutil
 import readline
+import pandas as pd
+
 
 class ShellPy(Cmd):
 
@@ -24,6 +25,7 @@ class ShellPy(Cmd):
     print("Working in " + os.path.basename(os.getcwd()))
     prompt = os.path.basename(os.getcwd()) +" (: " + getpass.getuser() + " :) > "
     intro = "ShellPy© Version 0.5"
+
 
     def preloop(self):
         if readline and os.path.exists(histfile):
@@ -115,7 +117,7 @@ class ShellPy(Cmd):
                               choices=file_list)]
         answers = inquirer.prompt(questions)
         try:
-            zipf = ZipFile("MyShellPy.Zip", 'w')
+            zipf = ZipFile("MyShellPy.zip", 'w')
             for dir in answers['files']:
                 for root, dirs, files in os.walk(dir):
                     for file in files:
@@ -129,26 +131,53 @@ class ShellPy(Cmd):
             os.execlpe('sudo', *args)
 
     def do_open(self, inp):
-        #subprocess.Popen("/Applications/Visual Studio.app")
-        #subprocess.Popen([os.getcwd() + "/Users/rishivenkat/Desktop/dheepan",
-            #              "--url=http://127.0.0.1:8100"])
-        file_to_show = "/Applications/keynote.app"
-        subprocess.call(["open", "-R", file_to_show])
+        print(os.getcwd()+"/"+inp)
+        subprocess.call(['open', inp])
 
     def do_unzip(self, inp):
 
-        # specifying the zip file name
-        file_name = "/Users/rishivenkat/Downloads/DBMS Assignment 1-b 2.zip"
+        file_list = []
+        for file in os.listdir(os.getcwd()):
+            if file.endswith('.zip'):
+                file_list.append(file)
+        questions = [
+            inquirer.Checkbox('files', message="Select Folders to UnZip (use Spacebar to select and Enter to confirm)",
+                              choices=file_list)]
+        answers = inquirer.prompt(questions)
 
-        # opening the zip file in READ mode
-        with ZipFile(file_name, 'r') as zip:
-            # printing all the contents of the zip file
-            zip.printdir()
+        for i in range(len(answers['files'])):
+            print(os.path.abspath(os.getcwd())+"/"+answers['files'][i])
+            with ZipFile(os.getcwd()+"/"+answers['files'][i], 'r') as zip:
+                print('Extracting all the files now...')
+                print(zip.namelist()[1 ])
+                if zip.filename in os.listdir(os.getcwd()): zip.filename = zip.filename + " Copy"
+                zip.extractall()
+                print('Done!')
 
-            # extracting all the files
-            print('Extracting all the files now...')
-            zip.extractall()
-            print('Done!')
+    def do_procM(self, inp):
+
+        listOfProcObjects = []
+        for proc in psutil.process_iter():
+            try:
+                pinfo = proc.as_dict(attrs=['pid', 'name', 'username'])
+                pinfo['vms'] = proc.memory_info().vms / (1024 * 1024)
+                listOfProcObjects.append(pinfo)
+            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                pass
+        listOfProcObjects = sorted(listOfProcObjects, key=lambda procObj: procObj['vms'], reverse=True)
+        for elem in listOfProcObjects:
+            print(elem)
+
+    def do_procC(self, inp):
+
+        while True:
+            print("CPU Usage ::: ", psutil.cpu_percent(interval=1), end='\r')
+            sys.stdout.flush()
+
+    def do_csvDes(self, inp):
+
+        file = pd.read_csv(os.getcwd()+"/"+inp)
+        print(file.describe())
 
     def help_cwd(self):
         print("Get Current Working Directory")
@@ -171,9 +200,8 @@ class ShellPy(Cmd):
     def help_compressFlies(self, inp):
         print("Compressing the Files")
 
-
 if __name__ == '__main__':
-    histfile = os.path.expanduser('~/.shellpy_history1')
+    histfile = os.path.expanduser('~/.shellpy_history2')
     histfile_size = 1000
     shellPy = ShellPy()
     shellPy.cmdloop()
