@@ -16,16 +16,15 @@ import readline
 import pandas as pd
 
 
-class ShellPy(Cmd):
 
+class ShellPy(Cmd):
     Art = text2art("ShellPy", "nvscript")
     clear = lambda: os.system('clear')
     clear()
     print(Art)
     print("Working in " + os.path.basename(os.getcwd()))
-    prompt = os.path.basename(os.getcwd()) +" (: " + getpass.getuser() + " :) > "
-    intro = "ShellPy© Version 0.5"
-
+    prompt = os.path.basename(os.getcwd()) + " (: " + getpass.getuser() + " :) > "
+    intro = "ShellPy© Version 0.6"
 
     def preloop(self):
         if readline and os.path.exists(histfile):
@@ -35,7 +34,7 @@ class ShellPy(Cmd):
         if readline:
             readline.set_history_length(histfile_size)
             readline.write_history_file(histfile)
-            
+
     def do_clear(self, inp):
         clear = lambda: os.system('clear')
         clear()
@@ -74,7 +73,7 @@ class ShellPy(Cmd):
             ssl._create_default_https_context = _create_unverified_https_context
 
         name = wget.detect_filename(inp)
-        wget.download(inp, '/Users/'+getpass.getuser()+'/Downloads/'+name)
+        wget.download(inp, '/Users/' + getpass.getuser() + '/Downloads/' + name)
 
     def do_memusage(self, inp):
         print("Total: ", psutil.virtual_memory().total / 1073741824)
@@ -83,7 +82,7 @@ class ShellPy(Cmd):
 
     def do_ls(self, inp):
         file_list = os.listdir(os.getcwd())
-        for i in range (len(file_list)):
+        for i in range(len(file_list)):
             print(file_list[i])
 
     def do_zipf(self, inp):
@@ -131,7 +130,7 @@ class ShellPy(Cmd):
             os.execlpe('sudo', *args)
 
     def do_open(self, inp):
-        print(os.getcwd()+"/"+inp)
+        print(os.getcwd() + "/" + inp)
         subprocess.call(['open', inp])
 
     def do_unzip(self, inp):
@@ -146,10 +145,10 @@ class ShellPy(Cmd):
         answers = inquirer.prompt(questions)
 
         for i in range(len(answers['files'])):
-            print(os.path.abspath(os.getcwd())+"/"+answers['files'][i])
-            with ZipFile(os.getcwd()+"/"+answers['files'][i], 'r') as zip:
+            print(os.path.abspath(os.getcwd()) + "/" + answers['files'][i])
+            with ZipFile(os.getcwd() + "/" + answers['files'][i], 'r') as zip:
                 print('Extracting all the files now...')
-                print(zip.namelist()[1 ])
+                print(zip.namelist()[1])
                 if zip.filename in os.listdir(os.getcwd()): zip.filename = zip.filename + " Copy"
                 zip.extractall()
                 print('Done!')
@@ -174,10 +173,37 @@ class ShellPy(Cmd):
             print("CPU Usage ::: ", psutil.cpu_percent(interval=1), end='\r')
             sys.stdout.flush()
 
+    def do_cpuM(self, inp):
+
+        while True:
+            print("CPU Usage ::: ", psutil.cpu_percent(interval=1), end='\r')
+            sys.stdout.flush()
+            if (psutil.cpu_percent(interval=1) < int(inp)):
+                os.system('say Alert CPU Usage reached the target')
+                return False
+
+    def do_memM(self, inp):
+
+        while True:
+
+            Total = psutil.virtual_memory().total / 1073741824
+            Used = psutil.virtual_memory().used / 1073741824
+            Percent = Used / Total * 100
+            print("Mem Usage ::: ", Percent, end='\r')
+            sys.stdout.flush()
+            if (Percent < int(inp)):
+                os.system('say Alert Mem Usage reached the target')
+                return False
+
     def do_csvDes(self, inp):
 
-        file = pd.read_csv(os.getcwd()+"/"+inp)
+        file = pd.read_csv(os.getcwd() + "/" + inp)
         print(file.describe())
+
+
+
+    def help_specs1(self, inp):
+        print("Specification's")
 
     def help_cwd(self):
         print("Get Current Working Directory")
@@ -200,8 +226,9 @@ class ShellPy(Cmd):
     def help_compressFlies(self, inp):
         print("Compressing the Files")
 
+
 if __name__ == '__main__':
-    histfile = os.path.expanduser('~/.shellpy_history2')
+    histfile = os.path.expanduser('~/Documetns/Shellpy/.shellpy_history')
     histfile_size = 1000
     shellPy = ShellPy()
     shellPy.cmdloop()
