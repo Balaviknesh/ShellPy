@@ -24,7 +24,7 @@ class ShellPy(Cmd):
     print(Art)
     print("Working in " + os.path.basename(os.getcwd()))
     prompt = os.path.basename(os.getcwd()) + " (: " + getpass.getuser() + " :) > "
-    intro = "ShellPy© Version 0.6"
+    intro = "ShellPy© Version 0.7"
 
     def preloop(self):
         if readline and os.path.exists(histfile):
